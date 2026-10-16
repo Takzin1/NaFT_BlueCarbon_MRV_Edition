@@ -98,7 +98,7 @@ export async function compileProject(project) {
     const evidence=project.evidence.filter(e=>c.evidenceIds.includes(e.id)).sort((a,b)=>a.id.localeCompare(b.id));
     const dependence={
       projectId:project.id, methodology:project.methodology,
-      claim:c, evidence:evidence.map(e=>({id:e.id,type:e.type,sha256:e.sha256||null,sourceUrl:e.sourceUrl||null}))
+      claim:c, evidence:evidence.map(e=>({id:e.id,type:e.type,sha256:e.sha256||null,sourceUrl:e.sourceUrl||null,note:e.note||null,observedAt:e.observedAt||null}))
     };
     const fingerprint=await sha256(stableStringify(dependence));
     const result=computeClaim(c,project.evidence);
