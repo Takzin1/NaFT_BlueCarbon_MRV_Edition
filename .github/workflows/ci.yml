@@ -1,0 +1,27 @@
+name: Blue Carbon MRV Checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax
+        run: |
+          node --check src/core.mjs
+          node --check src/app.mjs
+          node --check src/demo.mjs
+          node --check src/cli.mjs
+      - name: Research engine tests
+        run: npm test
+      - name: CLI end-to-end
+        run: |
+          node src/cli.mjs > /tmp/blue-carbon-report.json
+          node --input-type=module -e "import {readFileSync} from 'node:fs'; let p=JSON.parse(readFileSync('/tmp/blue-carbon-report.json')); if(p.package.formalCertification!==false || p.package.issuedCredits!==null || p.package.records.length!==3) process.exit(1);"
