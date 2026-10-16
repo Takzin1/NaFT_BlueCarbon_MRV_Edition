@@ -56,3 +56,17 @@ test("toggling unrelated metadata does not change result fingerprint",async()=>{
   b.name="Renamed demo";
   assert.deepEqual(comparePackages(a,await compileProject(b)).unchanged,["SEA-001","MAR-002","FLAT-003"]);
 });
+
+test("invalid calendar dates return validation errors rather than throwing",()=>{
+  const p=clone(demo);p.claims[0].periodStart="2025-02-30";
+  assert.ok(validateProject(p).some(x=>x.includes("period invalid")));
+});
+test("changing the annotation of shared evidence triggers re-verification",async()=>{
+  const original=await compileProject(demo);const revised=clone(demo);
+  revised.evidence[0].note="Updated provenance note";
+  assert.equal(comparePackages(original,await compileProject(revised)).changed.length,3);
+});
+test("malformed methodology and unsupported evidence role fail closed",()=>{
+  const p=clone(demo);p.methodology.id="UNKNOWN";p.evidence[0].type="unapproved";
+  assert.ok(validateProject(p).length>=2);
+});

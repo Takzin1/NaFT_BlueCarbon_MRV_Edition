@@ -40,7 +40,9 @@ export function validateProject(project) {
   if (!maxText(project.methodology?.version,60)) errors.push("methodology.version required");
   if (!Array.isArray(project.evidence) || project.evidence.length>500) errors.push("evidence must be an array (max 500)");
   if (!Array.isArray(project.claims) || project.claims.length>500 || !project.claims.length) errors.push("claims must be a nonempty array (max 500)");
-  if (errors.length) return errors;
+  // Accumulate independent methodology and evidence problems in one report.
+  // Only stop here when arrays are malformed or excessive; iterating them would be unsafe.
+  if (!Array.isArray(project.evidence) || !Array.isArray(project.claims) || project.evidence.length>500 || project.claims.length>500 || !project.claims.length) return errors;
   const evidenceIds=[];
   for (const [i,e] of project.evidence.entries()) {
     const p="evidence["+i+"]";
