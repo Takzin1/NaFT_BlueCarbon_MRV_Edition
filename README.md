@@ -81,3 +81,14 @@ No official methodology compliance, third-party verification, actual field valid
 - Regression corpus of published real-world coastal studies with permissions and transparent units.
 
 License: **All rights reserved** until the repository owner chooses an explicit open-source license.
+
+
+## v0.2: Coastal GIS and evidence integrity
+
+- **Coastal GIS:** import local RFC7946 GeoJSON Polygon / MultiPolygon (2 MB cap) to inspect coordinates and compute a **non-authoritative area approximation** with a limited local equirectangular projection. The input file is hashed and its digest can be bound as claim boundary evidence; computed area never silently overwrites declared claim area.
+- **Evidence recheck:** verify original file bytes against saved SHA-256 manifests without uploading the file. Matching bytes do not establish accurate measurements.
+- Evidence IDs now distinguish evidence **roles** even when two files contain identical bytes.
+- Modified inputs are flagged until recomputed. Export never silently uses a stale compiled result.
+- `src/provenance.mjs` can recompile an exported source project to check research-package consistency.
+
+**Limitations:** No polygon-overlap detection, scientifically validated habitat classification, certified hectares, ecological audit, signed evidence chain, scheme-approved method or credit issuance.

@@ -40,7 +40,9 @@ export function validateProject(project) {
   if (!maxText(project.methodology?.version,60)) errors.push("methodology.version required");
   if (!Array.isArray(project.evidence) || project.evidence.length>500) errors.push("evidence must be an array (max 500)");
   if (!Array.isArray(project.claims) || project.claims.length>500 || !project.claims.length) errors.push("claims must be a nonempty array (max 500)");
-  if (errors.length) return errors;
+  // Accumulate independent methodology and evidence problems in one report.
+  // Only stop here when arrays are malformed or excessive; iterating them would be unsafe.
+  if (!Array.isArray(project.evidence) || !Array.isArray(project.claims) || project.evidence.length>500 || project.claims.length>500 || !project.claims.length) return errors;
   const evidenceIds=[];
   for (const [i,e] of project.evidence.entries()) {
     const p="evidence["+i+"]";
@@ -98,7 +100,7 @@ export async function compileProject(project) {
     const evidence=project.evidence.filter(e=>c.evidenceIds.includes(e.id)).sort((a,b)=>a.id.localeCompare(b.id));
     const dependence={
       projectId:project.id, methodology:project.methodology,
-      claim:c, evidence:evidence.map(e=>({id:e.id,type:e.type,sha256:e.sha256||null,sourceUrl:e.sourceUrl||null,note:e.note||null,observedAt:e.observedAt||null}))
+      claim:{...c,evidenceIds:[...c.evidenceIds].sort()}, evidence:evidence.map(e=>({id:e.id,type:e.type,sha256:e.sha256||null,sourceUrl:e.sourceUrl||null,note:e.note||null,observedAt:e.observedAt||null}))
     };
     const fingerprint=await sha256(stableStringify(dependence));
     const result=computeClaim(c,project.evidence);
