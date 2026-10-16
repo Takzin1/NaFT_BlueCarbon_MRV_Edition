@@ -17,3 +17,8 @@
 ## Before production
 
 Add authentication + scoped project RBAC, audited immutable server-side evidence storage, secure upload scanning, independent checksums, tamper-evident event log, retention controls, input schema version migration, systematic scientific QA, reproducible spatial pipeline, external reviewer attestation, backup/DR, and threat model. Update libraries and enforce SBOM/code scanning before deployment with real evidence.
+
+
+## v0.2 review findings
+
+The browser flags uncompiled input edits, rechecks evidence bytes locally, and never exports an outdated compiled package. GIS inputs are locally inspected up to 2 MB, with coordinate format limits and explicit non-certification warnings. No original source bytes are persisted. Byte hashes do not establish field-data truth, user identity or rights to a marine project boundary.

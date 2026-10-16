@@ -61,3 +61,8 @@ All are serialized canonically with sorted keys, then SHA-256 hashed. A change t
 RESEARCH_ESTIMATE only means four classes of evidence manifest with digests and nonempty factor citation exist; **it does not mean scientific verification, independent audit, credit eligibility or approval**. The compiler always emits formalCertification=false, certifiedTco2e=null, issuedCredits=null.
 
 A human domain expert must separately approve all methodology mappings before any implementation can claim conformity.
+
+
+## Local GIS pre-check (v0.2)
+
+GeoJSON must be RFC7946-style [longitude, latitude] polygons and is treated as WGS84 by *assumption*. The equirectangular hectare estimate is limited to local polygons spanning under 3° and is not an official geodesic area. This pre-check does **not** independently confirm CRS truth, topology/self-intersections, overlapping boundaries, property rights or habitat eligibility. A polygon's content hash can be linked as evidence, but official carbon-credit eligibility and area require qualified external review.
