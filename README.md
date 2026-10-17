@@ -92,3 +92,16 @@ License: **All rights reserved** until the repository owner chooses an explicit 
 - `src/provenance.mjs` can recompile an exported source project to check research-package consistency.
 
 **Limitations:** No polygon-overlap detection, scientifically validated habitat classification, certified hectares, ecological audit, signed evidence chain, scheme-approved method or credit issuance.
+
+
+## v0.3 — Carbon-pool and greenhouse-gas observation ledger
+
+- Adds **Carbon Observations** to the browser dashboard and `src/monitoring.mjs` to the deterministic core.
+- Import user-supplied `carbonPools[]` and `gasFluxes[]` as a project JSON or use the **explicitly synthetic** in-browser fixture. Export the observation JSON for editing and re-import.
+- Biomass stocks: start/end **tC/ha**, change across an explicitly supplied area **ha**, convert mass C → mass CO₂ equivalent by **44/12**. Signed losses are preserved; carbon stock changes do **not** mean verified atmospheric uptake.
+- Sediment sensitivity diagnostic: `bulkDensityGcm3 × depthCm × 100 × organicCarbonFraction` in **tC/ha** for a fixed sampling depth, using *explicit measurements only*. No sediment accretion, mineral carbon, erosion, stratification, sample representativeness or permanence method is implemented.
+- Gas flux scenario: explicit period-total emitted **kg CH4** or **kg N2O** and **user-supplied GWP100**, returning tCO₂e without implicit factors.
+- All observation IDs, evidence links, claim IDs, measured area, input quantities and citations are validated. Each claim's dependency hash includes its own pool and gas records, supporting targeted re-verification on changed observations.
+- Output embeds an independent `monitoring` diagnostic for each claim and *never* adds pool or gas diagnostics to existing generic NaFT research estimates or official credit amounts.
+
+**No net credit calculation or external scientific validation.** Observation availability is not evidence of monitoring completeness; missing data must never be read as zero. See [Methodology](docs/METHODOLOGY.md) for units, definitions and boundaries.
