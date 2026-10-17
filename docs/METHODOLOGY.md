@@ -66,3 +66,16 @@ A human domain expert must separately approve all methodology mappings before an
 ## Local GIS pre-check (v0.2)
 
 GeoJSON must be RFC7946-style [longitude, latitude] polygons and is treated as WGS84 by *assumption*. The equirectangular hectare estimate is limited to local polygons spanning under 3° and is not an official geodesic area. This pre-check does **not** independently confirm CRS truth, topology/self-intersections, overlapping boundaries, property rights or habitat eligibility. A polygon's content hash can be linked as evidence, but official carbon-credit eligibility and area require qualified external review.
+
+
+## v0.3 Carbon-stock inventory and GHG ledger — NOT A CREDITING METHODOLOGY
+
+Two deliberately distinct inventories are handled per claim; neither modifies the v0.1 generic NaFT tCO₂e estimate.
+
+**1. Stock comparison:** For independently measured start and end carbon stocks in tC/ha, the *signed* difference is `(end − start) × areaHa × (44/12)` tCO₂e *as a mass-ratio representation of changed stocks only*. Aboveground and belowground biomass are separately identified; total stocks are not atmospheric uptake or annual rates. The area is supplied by the user; overlap and double counting are not checked. `uncertaintyPct` produces an absolute display band for sensitivity only, not a confidence interval.
+
+**2. Sediment stock sensitivity:** estimated `tC/ha = bulkDensityGcm3 × depthCm × 100 × organicCarbonFraction`. The start and end layers must have identical depths. 1 g/cm³ over 1 cm across 1 ha is 100 metric tonnes of dry sediment. Carbon fraction is [0,1], not percentage points. Changes in bulk density, sediment movement, sample composition, non-organic pools and compaction can invalidate interpretation. This is not a prescribed soil stock change methodology.
+
+**3. GHG emission observations:** for each gas `emissionTco2e = periodTotalKg × userSuppliedGWP100 / 1000`. CH4 and N2O have distinct records; no GWP is auto-populated or updated. The factor source and version must be supplied by users. No CO₂ gas emission channel, integrated flux surface or completeness test exists. Reported gas emissions are *not* netted against stocks, generic research claims or official credits.
+
+**Dependency and governance:** Claim-referenced observation IDs, source evidence links, citations and parameters are included in version-aware fingerprints. `netCreditableTco2e`, `netDiagnosticTco2e` and certified outputs remain `null`. No official J-Blue Credit or VM0033 methodology has been translated into an executable approved pack. Project-specific scientific review is needed before any practical claim.

@@ -3,7 +3,8 @@
  * This is not J-Blue Credit or Verra certified software.
  * No factors are silently supplied. All calculations are illustrative.
  */
-export const SCHEMA_VERSION = "0.1.0";
+import {validateMonitoring,compileMonitoringClaim,linkedMonitoringInputs,OBSERVATION_SCHEMA} from "./monitoring.mjs";
+export const SCHEMA_VERSION = "0.3.0";
 export const HABITATS = ["seagrass", "seaweed", "saltmarsh", "mangrove", "tidal_flat", "other"];
 export const REQUIRED_EVIDENCE = ["boundary", "monitoring", "baseline", "factor"];
 export const METHODOLOGIES = {
@@ -70,6 +71,7 @@ export function validateProject(project) {
     if (!Array.isArray(c.evidenceIds)||c.evidenceIds.length>100||c.evidenceIds.some(x=>typeof x!=="string"||!evidenceIds.includes(x))||!unique(c.evidenceIds)) errors.push(p+".evidenceIds invalid");
   }
   if (!unique(claimIds)) errors.push("duplicate claim IDs");
+  errors.push(...validateMonitoring(project));
   return errors;
 }
 export function computeClaim(claim,evidence) {
@@ -100,15 +102,16 @@ export async function compileProject(project) {
     const evidence=project.evidence.filter(e=>c.evidenceIds.includes(e.id)).sort((a,b)=>a.id.localeCompare(b.id));
     const dependence={
       projectId:project.id, methodology:project.methodology,
-      claim:{...c,evidenceIds:[...c.evidenceIds].sort()}, evidence:evidence.map(e=>({id:e.id,type:e.type,sha256:e.sha256||null,sourceUrl:e.sourceUrl||null,note:e.note||null,observedAt:e.observedAt||null}))
+      claim:{...c,evidenceIds:[...c.evidenceIds].sort()}, evidence:evidence.map(e=>({id:e.id,type:e.type,sha256:e.sha256||null,sourceUrl:e.sourceUrl||null,note:e.note||null,observedAt:e.observedAt||null})),
+      monitoring:linkedMonitoringInputs(project,c.id)
     };
     const fingerprint=await sha256(stableStringify(dependence));
     const result=computeClaim(c,project.evidence);
-    records.push({claimId:c.id, habitat:c.habitat, fingerprint, evidenceIds:c.evidenceIds, result});
+    records.push({claimId:c.id, habitat:c.habitat, fingerprint, evidenceIds:c.evidenceIds, result,monitoring:compileMonitoringClaim(project,c.id)});
   }
   const packageHash=await sha256(stableStringify({schema:SCHEMA_VERSION,records,projectId:project.id}));
   return {
-    schema:SCHEMA_VERSION, researchOnly:true, formalCertification:false, registryConnected:false,
+    schema:SCHEMA_VERSION, observationSchema:OBSERVATION_SCHEMA, researchOnly:true, formalCertification:false, registryConnected:false,
     projectId:project.id, projectName:project.name,
     methodology:{...project.methodology}, claimCount:records.length, records, packageHash,
     sumResearchEstimateTco2e:records.reduce((n,r)=>n+r.result.estimateTco2e,0),

@@ -21,6 +21,8 @@ jobs:
           node --check src/cli.mjs
           node --check src/spatial.mjs
           node --check src/provenance.mjs
+          node --check src/monitoring.mjs
+          node --check src/monitoring-demo.mjs
       - name: Research engine tests
         run: npm test
       - name: CLI end-to-end

@@ -1,4 +1,5 @@
 import {demo} from "./demo.mjs";
+import {syntheticObservations} from "./monitoring-demo.mjs";
 import {inspectGeoJSON} from "./spatial.mjs";
 import {createEvidenceManifest,verifyEvidenceBytes} from "./provenance.mjs";
 import {compileProject,comparePackages,validateProject,parseClaimsCsv,sha256,METHODOLOGIES,HABITATS} from "./core.mjs";
@@ -14,9 +15,9 @@ const btn=(action,label,kind="outline",extra="")=>'<button type="button" class="
 const pill=(ok,t)=>'<span class="tag '+(ok?"":"warn")+'">'+esc(t)+'</span>';
 function notice(message,isError=false){state.notice=isError?"":message;state.error=isError?message:"";render();}
 function download(name,text,type){const blob=new Blob([text],{type});const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-function header(){return '<div class="top"><div class="crumb">Workspace&nbsp; / &nbsp; <b>'+esc(({overview:"Overview",claims:"Claims & Data",evidence:"Evidence Vault",audit:"Re-verification",methods:"Methodology",spatial:"Coastal GIS"})[state.tab])+'</b></div><div class="topright"><span class="labchip">● RESEARCH ONLY</span>'+(state.dirty?'<span class="labchip">INPUTS MODIFIED</span>':'')+'<div class="avatar">N</div></div></div>';}
+function header(){return '<div class="top"><div class="crumb">Workspace&nbsp; / &nbsp; <b>'+esc(({overview:"Overview",claims:"Claims & Data",evidence:"Evidence Vault",audit:"Re-verification",methods:"Methodology",spatial:"Coastal GIS",monitoring:"Carbon Observations"})[state.tab])+'</b></div><div class="topright"><span class="labchip">● RESEARCH ONLY</span>'+(state.dirty?'<span class="labchip">INPUTS MODIFIED</span>':'')+'<div class="avatar">N</div></div></div>';}
 function sidebar(){
-  const tabs=[["overview","◈","Overview"],["claims","▥","Claims & Data"],["evidence","▣","Evidence Vault"],["spatial","⌖","Coastal GIS"],["audit","⟳","Re-verification"],["methods","▤","Methodology"]];
+  const tabs=[["overview","◈","Overview"],["claims","▥","Claims & Data"],["evidence","▣","Evidence Vault"],["spatial","⌖","Coastal GIS"],["monitoring","≋","Carbon Observations"],["audit","⟳","Re-verification"],["methods","▤","Methodology"]];
   return '<aside class="sidebar"><div class="brand"><div class="brandmark">≈</div><div><div class="brandname">NaFT</div><div class="brandsub">BLUE CARBON MRV</div></div></div><div class="navlabel">WORKSPACE</div><div class="navlist">'+tabs.map(([id,ic,title])=>'<button type="button" class="navbtn '+(state.tab===id?"active":"")+'" data-tab="'+id+'"><span class="navicon">'+ic+'</span>'+title+'</button>').join("")+'</div><div class="sidebottom"><strong>● SYNTHETIC / RESEARCH</strong>Not connected to a registry.<div style="margin-top:10px">Evidence Compiler v0.1.0</div><div>Re-verification Engine</div></div></aside>';
 }
 function cards(){
@@ -93,6 +94,34 @@ function spatial(){
  '<div class="note warning">Load coastal GeoJSON to estimate area. No certified survey, net removal or claim area is inferred.</div>')+'</div>';
 }
 
+function monitoring(){
+ const rows=(state.last?.records||[]).map(r=>r.monitoring||null).filter(Boolean);
+ const pools=state.project.carbonPools||[],gases=state.project.gasFluxes||[];
+ const poolRows=rows.flatMap(r=>r.pools.map(p=>({claim:r.claimId,...p})));
+ const gasRows=rows.flatMap(r=>r.gases.map(g=>({claim:r.claimId,...g})));
+ return '<div class="sectop"><div><h2>Carbon Pools & Greenhouse Gas Ledger</h2><p>Independent observation diagnostics linked to Claim evidence and methodology versions.</p></div>'+pill(false,"NOT CREDITABLE")+'</div>'+
+ '<div class="note warning">Stock changes are not verified CO₂ removal. Methane and nitrous oxide entries are separate gross emission diagnostics; they are NOT combined with existing NaFT claim estimates.</div>'+
+ '<div class="stats" style="grid-template-columns:repeat(3,minmax(0,1fr))">'+
+ '<div class="stat"><div class="statlabel">POOL OBSERVATIONS</div><div class="statvalue">'+pools.length+'</div><div class="statfoot">Comparative carbon stocks</div></div>'+
+ '<div class="stat"><div class="statlabel">GAS ENTRIES</div><div class="statvalue">'+gases.length+'</div><div class="statfoot">Source-specific GWP100 factors</div></div>'+
+ '<div class="stat"><div class="statlabel">REPORTED STOCK CHANGE</div><div class="statvalue">'+fmt(rows.reduce((s,r)=>s+r.stockChangeTco2e,0),2)+'<small>tCO₂e</small></div><div class="statfoot">NOT additional certified removals</div></div></div>'+
+ '<div class="panel"><div class="panelhead"><h3>Observation datasets</h3>'+pill(false,"LOCAL MEMORY")+'</div>'+
+ '<div class="actions">'+btn("load-synthetic-observations","◎ Load Synthetic Example","dark")+
+ btn("import-observations","↑ Import JSON","outline")+btn("download-observations","↓ Export Observation JSON","outline")+
+ btn("clear-observations","✕ Clear Ledger","danger")+'</div>'+
+ '<input id="observationFile" class="hiddenfile" type="file" accept=".json,application/json"/>'+
+ '<p class="help">Import JSON with carbonPools[] and gasFluxes[]; each observation must have a claim ID, unit-specific inputs, citation and claim-linked evidence IDs. File limit 1 MB. No external upload or registry call.</p></div>'+
+ '<div class="panel"><div class="panelhead"><h3>Carbon pool stock comparisons</h3><span class="chip">ΔtC × 44/12 · research only</span></div>'+
+ '<div class="tablewrap"><table class="tbl"><thead><tr><th>Observation</th><th>Claim / Pool</th><th>Area (ha)</th><th>Start tC/ha</th><th>End tC/ha</th><th>Δ tCO₂e</th></tr></thead><tbody>'+
+ (poolRows.length?poolRows.map(p=>'<tr><td><strong>'+esc(p.id)+'</strong></td><td>'+esc(p.claim)+'<br><span class="mini">'+esc(p.pool)+'</span></td><td>'+fmt(p.areaHa,2)+'</td><td>'+fmt(p.startStockTcHa,2)+'</td><td>'+fmt(p.endStockTcHa,2)+'</td><td><strong>'+fmt(p.changeTco2e,2)+'</strong></td></tr>').join(""):'<tr><td colspan="6" class="empty">No carbon-pool observations imported</td></tr>')+
+ '</tbody></table></div></div>'+
+ '<div class="panel"><div class="panelhead"><h3>Gas observations</h3><span class="chip">kg × user-supplied GWP / 1000</span></div>'+
+ '<div class="tablewrap"><table class="tbl"><thead><tr><th>Observation</th><th>Claim</th><th>Gas</th><th>Emitted kg</th><th>GWP100</th><th>tCO₂e</th></tr></thead><tbody>'+
+ (gasRows.length?gasRows.map(g=>'<tr><td><strong>'+esc(g.id)+'</strong></td><td>'+esc(g.claim)+'</td><td>'+esc(g.gas)+'</td><td>'+fmt(g.totalKg,1)+'</td><td>'+fmt(g.gwp100,1)+'</td><td><strong>'+fmt(g.emissionTco2e,2)+'</strong></td></tr>').join(""):'<tr><td colspan="6" class="empty">No gas observations imported</td></tr>')+
+ '</tbody></table></div></div>'+
+ '<div class="note"><strong>Boundary of interpretation:</strong> This ledger preserves separately measured pools and gas observations. It does not prove additionality, permanence, ecological eligibility, complete flux inventory, or independently verified carbon-credit removals. Missing observations must never be read as measured zeros.</div>';
+}
+
 function audit(){
  const d=state.delta||{new:[],changed:[],unchanged:[],removed:[]};
  return '<div class="sectop"><div><h2>Re-verification Engine</h2><p>Only claims whose methodology, parameters, or bound evidence changed are invalidated.</p></div>'+btn("compile","↻ Run new revision","dark")+'</div>'+
@@ -123,7 +152,7 @@ function render(){
  root.innerHTML='<div class="shell">'+sidebar()+'<main class="main">'+header()+
  (state.notice?'<div role="status" class="toast">'+esc(state.notice)+'</div>':"")+
  (state.error?'<div role="alert" class="note error">'+esc(state.error)+'</div>':"")+(state.dirty?'<div class="note warning">Changes pending compilation. Displayed estimates may be stale. Exports recalculate first.</div>':"")+
- ({overview,claims,evidence,spatial,audit,methods})[state.tab]()+ 
+ ({overview,claims,evidence,spatial,monitoring,audit,methods})[state.tab]()+ 
  '<footer class="footer"><span>NaFT Blue Carbon MRV · Research Prototype v0.1.0</span><span>© NaFT / Independent MRV research · No credit issuance</span></footer></main></div>';
 }
 async function compile(){const errors=validateProject(state.project);if(errors.length){notice(errors.join("; "),true);return false;}try{const next=await compileProject(state.project);state.previous=state.last;state.last=next;state.delta=comparePackages(state.previous,next);state.dirty=false;notice("Research package compiled. No formal certification or issuance was performed.");return true;}catch(e){notice(e.message,true);return false;}}
@@ -154,6 +183,26 @@ root.addEventListener("click",async event=>{
  if(act==="compile"){await compile();return;}
  if(act==="claims"){state.tab="claims";render();return;}
  if(act==="export"){if(!state.last||state.dirty){const ok=await compile();if(!ok)return;}if(state.last){download("naft-bluecarbon-mrv-package.json",JSON.stringify({package:state.last,sourceProject:state.project,comparison:state.delta,spatialPrecheck:state.spatial?.report||null,spatialSourceSha256:state.spatial?.digest||null},null,2),"application/json");}return;}
+ if(act==="load-synthetic-observations"){
+   const candidate=deepcopy(state.project);
+   candidate.carbonPools=deepcopy(syntheticObservations.carbonPools);
+   candidate.gasFluxes=deepcopy(syntheticObservations.gasFluxes);
+   const errors=validateProject(candidate);
+   if(errors.length){notice("Synthetic observation fixture incompatible with current claims: "+errors.join("; "),true);return;}
+   state.project=candidate;state.dirty=true;
+   notice("Synthetic observation ledger loaded. Recalculate to bind its fingerprints.");return;
+ }
+ if(act==="clear-observations"){
+   state.project.carbonPools=[];state.project.gasFluxes=[];state.dirty=true;
+   notice("Observation records cleared. Recalculate to update claim dependencies.");return;
+ }
+ if(act==="import-observations"){$("observationFile").click();return;}
+ if(act==="download-observations"){
+   download("naft-carbon-observations.json",JSON.stringify({
+     schema:"NAFT-OBSERVATION-LEDGER/0.3.0",disclaimer:"Research-only, non-certified observation data",
+     carbonPools:state.project.carbonPools||[],gasFluxes:state.project.gasFluxes||[]
+   },null,2),"application/json");return;
+ }
  if(act==="import-json"){$("jsonFile").click();return;}
  if(act==="import-csv"){$("csvFile").click();return;}
  if(act==="download-csv"){
@@ -165,6 +214,8 @@ root.addEventListener("click",async event=>{
  if(act.startsWith("remove:")){
   if(state.project.claims.length<=1){notice("At least one claim is required.",true);return;}
   const id=act.slice(7);state.project.claims=state.project.claims.filter(c=>c.id!==id);
+  state.project.carbonPools=(state.project.carbonPools||[]).filter(r=>r.claimId!==id);
+  state.project.gasFluxes=(state.project.gasFluxes||[]).filter(r=>r.claimId!==id);
   state.dirty=true;state.notice="Claim removed. Recalculate to update the package.";render();return;
  }
  if(act==="bind-geo"){
@@ -200,6 +251,20 @@ root.addEventListener("submit",event=>{
 });
 root.addEventListener("change",async event=>{
  const id=event.target.id;
+ if(id==="observationFile"){
+   const file=event.target.files?.[0];if(!file)return;
+   if(file.size>1024*1024){notice("Observation file exceeds 1 MB",true);return;}
+   try{
+     const obj=JSON.parse(await file.text());
+     if(!obj||typeof obj!=="object"||Array.isArray(obj)||
+        !Array.isArray(obj.carbonPools)||!Array.isArray(obj.gasFluxes))throw Error("Expected JSON with carbonPools[] and gasFluxes[]");
+     const candidate=deepcopy(state.project);
+     candidate.carbonPools=obj.carbonPools;candidate.gasFluxes=obj.gasFluxes;
+     const issues=validateProject(candidate);if(issues.length)throw Error(issues.join("; "));
+     state.project=candidate;state.dirty=true;
+     notice("Observation ledger imported. Recalculate to generate new claim fingerprints.");
+   }catch(e){notice("Observation import rejected: "+e.message,true);}return;
+ }
  if(id==="jsonFile"||id==="csvFile"){await importFile(event.target.files?.[0],id==="jsonFile"?"json":"csv");return;}
  if(id==="recheckFile"){
   const file=event.target.files?.[0];if(!file)return;
