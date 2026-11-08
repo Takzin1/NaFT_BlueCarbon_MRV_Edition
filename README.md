@@ -2,9 +2,13 @@
 
 **Version-aware coastal carbon evidence compiler + targeted re-verification engine.**
 
-An independent research prototype extending NaFT's core principle — versioned evidence dependencies and recomputation — into coastal ecosystem carbon monitoring. The private repository was initialized on 2026-10-16.
+An independent research prototype extending NaFT's core principle — versioned evidence dependencies and recomputation — into coastal ecosystem carbon monitoring. The repository was initialized on 2026-10-16 and is now public.
 
 > **Scientific boundary:** This software does not implement approved J-Blue Credit or Verra VM0033 accounting. It produces **illustrative research estimates**, not certified removals or issued carbon credits. All quantities in the built-in demo are explicitly synthetic.
+
+## NaFT Core interoperability (proposed)
+
+This public edition remains an independent research calculator. A [read-only Core integration PR](https://github.com/Takzin1/NaFT/pull/74) accepts its existing CLI JSON export, checks source bindings and illustrative arithmetic, and emits a research-only receipt without issuing credits or posting transactions. See [bridge instructions](docs/NAFT_CORE_BRIDGE.md). Public visibility does not change the existing All rights reserved terms.
 
 ## Features (v0.1.0)
 
