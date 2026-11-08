@@ -1,0 +1,17 @@
+# Local dependencies and generated analysis only
+node_modules/
+coverage/
+dist/
+*.log
+data/derived/
+*.local.json
+
+# Local configuration (never commit credentials)
+.env
+.env.*
+!.env.example
+
+# OS/editor files
+.DS_Store
+.idea/
+.vscode/
